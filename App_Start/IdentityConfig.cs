@@ -63,34 +63,35 @@ namespace WebServer
         {
             public async Task SendAsync(IdentityMessage message)
             {
-                await configureEMail(message);
-            }
+                //throw new System.NotImplementedException();
+               // await configureEMail(message);
 
-            private async Task configureEMail(IdentityMessage message)
-            {
-                MailMessage mailMsg = new MailMessage();
-
+                /*** Assemble Email ***/
+                 MailMessage mailMsg = new MailMessage();
                 //to (Alles geht zu Testzwecken an t.rocket@... )
                 //mailMsg.To.Add(message.Destination);              
-                mailMsg.To.Add(new MailAddress("t.rocket@web.de", "TobiRakete"));            
-
+                mailMsg.To.Add(new MailAddress("t.rocket@web.de", "TobiRakete"));      
                 //from
                 mailMsg.From = new MailAddress("tobitobinc@gmail.com", "TheProject");
-
                 // Subject and multipart/alternative Body
                 mailMsg.Subject = message.Subject;
-                string text = message.Body;
-                string html = message.Body;
-                mailMsg.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(text, null, MediaTypeNames.Text.Plain));
-                mailMsg.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(html, null, MediaTypeNames.Text.Html));
+                mailMsg.IsBodyHtml = true;
+                mailMsg.Body = message.Body;
+                     
+                //string text = message.Body;
+                //string html = message.Body;
+                //mailMsg.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(text, null, MediaTypeNames.Text.Plain));
+                //mailMsg.AlternateViews.Add(AlternateView.CreateAlternateViewFromString(html, null, MediaTypeNames.Text.Html));
 
-                // Init SmtpClient and send
+                /*** Get SMTP transport ready ***/
                 SmtpClient smtpClient = new SmtpClient("smtp.gmail.com", Convert.ToInt32(587));
                 System.Net.NetworkCredential credentials = new System.Net.NetworkCredential("tobitobinc@gmail.com", ")!8291IdoU=0");
                 smtpClient.Credentials = credentials;
                 smtpClient.EnableSsl = true;
-                                
-                smtpClient.SendAsync(mailMsg, null);
+
+                // Send email //
+                await smtpClient.SendMailAsync(mailMsg);
+                
             }
         }
 

@@ -6,6 +6,13 @@ namespace WebServer.Models
 {
     // Models used as parameters to AccountController actions.
 
+
+    public class AccountConfirmationModel
+    {
+        public string userID { get; set; }
+        public string ConfirmationToken { get; set; }
+    }
+
     public class AddExternalLoginBindingModel
     {
         [Required]

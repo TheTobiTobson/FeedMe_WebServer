@@ -413,16 +413,33 @@ namespace WebServer.Controllers
             return logins;
         }
 
-        // POST api/Account/ConfirmEmail
-        [AllowAnonymous]        
-        [Route("ConfirmEmail/{userId}/{code}", Name = "ConfirmEmailRoute")]
-        public async Task<IHttpActionResult> ConfirmEmail(string userId = "", string emailCode = "")
+        // POST api/Account/AccountConfirmation
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("AccountConfirmation", Name = "AccountConfirmationRoute")]
+        public async Task<IHttpActionResult> AccountConfirmation(AccountConfirmationModel model)
         {
+            //throw new System.NotImplementedException();
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            IdentityResult result = await UserManager.ConfirmEmailAsync(model.userID, model.ConfirmationToken);
+
+            if (!result.Succeeded)
+            {
+                return GetErrorResult(result);
+            }
+            
             return Ok();
+            
         }
 
         // POST api/Account/Register
         [AllowAnonymous]
+        [HttpPost]
         [Route("Register")]
         public async Task<IHttpActionResult> Register(RegisterBindingModel model)
         {
@@ -444,16 +461,20 @@ namespace WebServer.Controllers
 
             //** Confirm EMail Address**//
             // Generate Token
-            string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-            //Generate URI for E-Mail            
-            //var callbackurl = new Uri(Url.Link("ConfirmEmailRoute", new { userId = user.Id, emailCode = code }));
-            string callbackurl = "http://localhost:54599/api/Account/ConfirmEmail/" + code;
+            string ConfirmationToken = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
 
-            
+            //Generate URI for E-Mail  
+            string uriWithToken = Url.Link("AccountConfirmationRoute", null);  
+            //string uriWithToken = Url.Link()
+                        
             // Send E-Mail with UserManager
-            await UserManager.SendEmailAsync(user.Id, "E-Mail-Adresse: Bestätigung", "Bitte klicken Sie auf folgenden Link:" + callbackurl);
+            //DO NOT DELETE > Message for E-Mail Functionality//
+            //await UserManager.SendEmailAsync(user.Id, "AccountConfirmation", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>Please verify your Account by clicking on following link</p><p><a href=\"" + uriWithToken + "\">CONFIRM ACCOUNT</a></p></body></html>");
 
+            //Message for testing
+            await UserManager.SendEmailAsync(user.Id, "AccountConfirmation", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>UserID:" + user.Id + "</p><p>Token:" + ConfirmationToken + "</p></body></html>");
             //** END - Confirm EMail Address**//
+
 
             return Ok();
         }
