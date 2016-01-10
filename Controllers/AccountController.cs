@@ -48,7 +48,7 @@ namespace WebServer.Controllers
             AccessTokenFormat = accessTokenFormat;
         }
 
-        // Accessor: Defines how to read and write UserManager - T
+        // Accessor: Defines how to read and write UserManager //
         public ApplicationUserManager UserManager
         {
             get
