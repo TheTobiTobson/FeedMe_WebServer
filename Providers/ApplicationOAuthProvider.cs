@@ -46,6 +46,13 @@ namespace WebServer.Providers
                 return;
             }
 
+            //*** Check if Account is confirmed ***//
+            if (!user.EmailConfirmed) //Email is not confirmed
+            {
+                context.SetError("Account_Not_Confirmed", "In order to login you need to confirm your email account");                
+                return;
+            }
+
             ClaimsIdentity oAuthIdentity = await user.GenerateUserIdentityAsync(userManager,
                OAuthDefaults.AuthenticationType);
             ClaimsIdentity cookiesIdentity = await user.GenerateUserIdentityAsync(userManager,

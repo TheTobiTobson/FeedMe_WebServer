@@ -146,6 +146,99 @@ namespace WebServer.Controllers
         
         
         /*** Code for Account API ***/
+
+
+        //////////////////////////
+        // Url:.../api/Account/AccountConfirmation
+        // Method: POST
+        // Parameter: AccountConfirmationModel (userID and Token from email)
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request)
+        // Description:
+        //     API is called when user clicks on Account Confirmation Link
+        //     which is sent via email.
+        //////////////////////////
+    
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("AccountConfirmation", Name = "AccountConfirmationRoute")]
+        public async Task<IHttpActionResult> AccountConfirmation(AccountConfirmationModel model)
+        {
+            //throw new System.NotImplementedException();
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("UserID or Confirmation Token is wrong.");
+            }
+
+            IdentityResult result = await UserManager.ConfirmEmailAsync(model.userID, model.ConfirmationToken);
+
+            if (!result.Succeeded)
+            {
+                return GetErrorResult(result);
+            }
+
+            return Ok();
+
+        }
+
+        //////////////////////////
+        // Url:.../api/Account/Register
+        // Method: POST
+        // Parameter: RegisterBindingModel (Email, Password, Password Confirmation)
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request)
+        // Description:
+        //     API is called when user wants to register an account
+        //////////////////////////
+             
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("Register")]
+        public async Task<IHttpActionResult> Register(RegisterBindingModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Create the user data structure // 
+            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
+
+            // User Manager gets user to creates a new user. Password is a parameter cause the user manager does password hashing //
+            IdentityResult result = await UserManager.CreateAsync(user, model.Password);
+
+            if (!result.Succeeded)
+            {
+                return GetErrorResult(result);
+            }
+
+            //** Confirm EMail Address**//
+            // Generate Token
+            string ConfirmationToken = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+
+            //Generate URI for E-Mail  
+            string uriWithToken = Url.Link("AccountConfirmationRoute", null);
+            //string uriWithToken = Url.Link()
+
+            // Send E-Mail with UserManager
+            //DO NOT DELETE > Message for E-Mail Functionality//
+            //await UserManager.SendEmailAsync(user.Id, "AccountConfirmation", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>Please verify your Account by clicking on following link</p><p><a href=\"" + uriWithToken + "\">CONFIRM ACCOUNT</a></p></body></html>");
+
+            //Message for testing
+            await UserManager.SendEmailAsync(user.Id, "AccountConfirmation", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>UserID:" + user.Id + "</p><p>Token:" + ConfirmationToken + "</p></body></html>");
+            //** END - Confirm EMail Address**//
+
+
+            return Ok();
+        }
+       
+
+
+        
+        
+        
+        
+        
+        
         // GET api/Account/UserInfo
         [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
         [Route("UserInfo")]
@@ -413,71 +506,7 @@ namespace WebServer.Controllers
             return logins;
         }
 
-        // POST api/Account/AccountConfirmation
-        [AllowAnonymous]
-        [HttpPost]
-        [Route("AccountConfirmation", Name = "AccountConfirmationRoute")]
-        public async Task<IHttpActionResult> AccountConfirmation(AccountConfirmationModel model)
-        {
-            //throw new System.NotImplementedException();
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            IdentityResult result = await UserManager.ConfirmEmailAsync(model.userID, model.ConfirmationToken);
-
-            if (!result.Succeeded)
-            {
-                return GetErrorResult(result);
-            }
-            
-            return Ok();
-            
-        }
-
-        // POST api/Account/Register
-        [AllowAnonymous]
-        [HttpPost]
-        [Route("Register")]
-        public async Task<IHttpActionResult> Register(RegisterBindingModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            // Create the user data structure // 
-            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
-
-            // User Manager gets user to creates a new user. Password is a parameter cause the user manager does password hashing //
-            IdentityResult result = await UserManager.CreateAsync(user, model.Password);
-
-            if (!result.Succeeded)
-            {
-                return GetErrorResult(result);
-            }
-
-            //** Confirm EMail Address**//
-            // Generate Token
-            string ConfirmationToken = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-
-            //Generate URI for E-Mail  
-            string uriWithToken = Url.Link("AccountConfirmationRoute", null);  
-            //string uriWithToken = Url.Link()
-                        
-            // Send E-Mail with UserManager
-            //DO NOT DELETE > Message for E-Mail Functionality//
-            //await UserManager.SendEmailAsync(user.Id, "AccountConfirmation", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>Please verify your Account by clicking on following link</p><p><a href=\"" + uriWithToken + "\">CONFIRM ACCOUNT</a></p></body></html>");
-
-            //Message for testing
-            await UserManager.SendEmailAsync(user.Id, "AccountConfirmation", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>UserID:" + user.Id + "</p><p>Token:" + ConfirmationToken + "</p></body></html>");
-            //** END - Confirm EMail Address**//
-
-
-            return Ok();
-        }
+      
 
 
 

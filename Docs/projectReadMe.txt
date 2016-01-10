@@ -1,4 +1,4 @@
-** ToDo Server **
+﻿** ToDo Server **
 
 o Entity Framework integrieren / Datenbanken optimieren >> DONE!
 
@@ -6,25 +6,29 @@ o Autorisierung einbinden > DONE!
 
 o Kommunikation Client/Server herstellen > DONE!
 
-o Demoapplikation serverseitig entsprechend Ablaufplan > (1)
-
 o Routing > DONE
 
-o GitHub > (1)
+o GitHub > DONE
 
 o EMail funktionalitaet > DONE
 
 o Account Confirmation	> DONE
 
-o Ueberblick ueber VORTEILE von MVC verschaffen > (3)
+o Ueberblick ueber VORTEILE von MVC verschaffen > (1)
 
 o Passwort Reset Funktionalität >
 
 o Account Confirmation Resend Link >
 
+o Demoapplikation serverseitig entsprechend Ablaufplan > (1)
+
 o Client neu schreiben  > (5)
 
 >>CREATION<<
+
+o Ueberfluessige Sachen aus MVC template entfernen / Help Page deaktivieren
+
+o Ueberfluessige Actions aus Controllern entfernen
 
 o Ueberblick ueber Exception Handling verschaffen
 
@@ -38,17 +42,13 @@ o Cross-Origin entfernen
 
 o Kommunikation per SSL implementieren
 
-o Ueberfluessige Sachen aus MVC template entfernen / Help Page deaktivieren
-
-o Ueberfluessige Actions aus Controllern entfernen
-
 o >Ensure your app is reading for production< von der Projekt-Startpage lesen
 
 o Deployment
 
 o Datenbank umbenennen	
 
-o PowerShell Ececution Policy pruefen	
+o PowerShell Excecution Policy pruefen	
 
 
 >>PRODUCTION<<
@@ -57,7 +57,10 @@ o Cookies, Claims Ueberblick ueber ThirdParty Authorisierungen verschaffen > (5)
 
 o Custom NotFound() Message mit text implementieren
 
+o UserManager.ConfirmEmailAsync liefert zurueck, dass Benutzer nicht vorhanden ist. 
+  Diese Information sollte fuer potentielle Angreifer entfernt werden.
 
+o Anzahl an fehlgeschlagenen Anmeldeversuchen limitieren
 
 
 

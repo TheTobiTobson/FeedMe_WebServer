@@ -9,7 +9,9 @@ namespace WebServer.Models
 
     public class AccountConfirmationModel
     {
+        [Required]
         public string userID { get; set; }
+        [Required]
         public string ConfirmationToken { get; set; }
     }
 
