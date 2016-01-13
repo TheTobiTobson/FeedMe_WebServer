@@ -84,7 +84,7 @@ namespace WebServer.Controllers
         public async Task<IHttpActionResult> Get_FeedbackSessions()
         {
             // Get user id
-            IdentityUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
+            ApplicationUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
 
             var list_of_FeedbackSessions = (from x in db.FBS_FeedbackSessions
                                                 where x.FBS_ApplicationUser_Id == user.Id
@@ -115,7 +115,7 @@ namespace WebServer.Controllers
         public async Task<IHttpActionResult> Get_FeedbackQuestions(int FBS_id)
         {
             // Get user id
-            IdentityUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
+            ApplicationUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
 
             // Check if requested Feedbacksession is available
             FBS_FeedbackSessions fBS_FeedbackSessions = await db.FBS_FeedbackSessions.FindAsync(FBS_id);
@@ -146,41 +146,7 @@ namespace WebServer.Controllers
         
         
         /*** Code for Account API ***/
-
-
-        //////////////////////////
-        // Url:.../api/Account/AccountConfirmation
-        // Method: POST
-        // Parameter: AccountConfirmationModel (userID and Token from email)
-        // Result: HTTP 200 (ok), HTTP 400(Bad Request)
-        // Description:
-        //     API is called when user clicks on Account Confirmation Link
-        //     which is sent via email.
-        //////////////////////////
-    
-        [AllowAnonymous]
-        [HttpPost]
-        [Route("AccountConfirmation", Name = "AccountConfirmationRoute")]
-        public async Task<IHttpActionResult> AccountConfirmation(AccountConfirmationModel model)
-        {
-            //throw new System.NotImplementedException();
-
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("UserID or Confirmation Token is wrong.");
-            }
-
-            IdentityResult result = await UserManager.ConfirmEmailAsync(model.userID, model.ConfirmationToken);
-
-            if (!result.Succeeded)
-            {
-                return GetErrorResult(result);
-            }
-
-            return Ok();
-
-        }
-
+        
         //////////////////////////
         // Url:.../api/Account/Register
         // Method: POST
@@ -226,19 +192,125 @@ namespace WebServer.Controllers
             //Message for testing
             await UserManager.SendEmailAsync(user.Id, "AccountConfirmation", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>UserID:" + user.Id + "</p><p>Token:" + ConfirmationToken + "</p></body></html>");
             //** END - Confirm EMail Address**//
+            
+            return Ok();
+        }
 
+        //////////////////////////
+        // Url:.../api/Account/AccountConfirmation
+        // Method: POST
+        // Parameter: AccountConfirmationModel (userID and Token from email)
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request)
+        // Description:
+        //     API is called when user clicks on Account Confirmation Link
+        //     which is sent via email.
+        //////////////////////////
+
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("AccountConfirmation", Name = "AccountConfirmationRoute")]
+        public async Task<IHttpActionResult> AccountConfirmation(AccountConfirmationModel model)
+        {
+            //throw new System.NotImplementedException();
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("UserID or Confirmation Token is wrong.");
+            }
+
+            IdentityResult result = await UserManager.ConfirmEmailAsync(model.userID, model.ConfirmationToken);
+
+            if (!result.Succeeded)
+            {
+                return GetErrorResult(result);
+            }
 
             return Ok();
         }
-       
 
+        //////////////////////////
+        // Url:.../api/Account/ForgotPassword
+        // Method: POST
+        // Parameter: ForgotPasswordViewModel (Email)
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request)
+        // Description:
+        //     API is called when user wants to reset password
+        //////////////////////////
 
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("ForgotPassword")]
+        public async Task<IHttpActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Find user based on email address //
+            ApplicationUser user = await UserManager.FindByEmailAsync(model.Email);
+
+            if (user == null || !(user.EmailConfirmed))
+            {
+                // User was not found or has no confirmed email address //
+                // Don't let anyone this > send OK //
+                return Ok();
+            }
+
+            //*** Send ResetToken ***//
+            string ResetToken = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+           
+            //Generate URI for E-Mail  
+            string uriWithToken = Url.Link("ResetPasswordRoute", null);
+
+            //Message for testing
+            await UserManager.SendEmailAsync(user.Id, "Password Reset", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>UserID:" + user.Id + "</p><p>PW Reset Token:" + ResetToken + "</p></body></html>");
+            
+            // everything is good //
+            return Ok();
+        }
+
+          //////////////////////////
+        // Url:.../api/Account/ResetPassword
+        // Method: POST
+        // Parameter: ResetPasswordViewModel (Email, Password, Confirm Password)
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request)
+        // Description:
+        //     API is called when user clicks on link in password reset email
+        //////////////////////////
         
-        
-        
-        
-        
-        
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("ResetPassword", Name = "ResetPasswordRoute")]
+        public async Task<IHttpActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ApplicationUser user = await UserManager.FindByIdAsync(model.userID);
+          //  UserManager.find
+
+            if (user == null)
+            {
+                // Specified user does not exist //
+                // Don't let anyone this > send OK //
+                return Ok();
+            }
+
+            //*** Reset Password ***//
+            IdentityResult PasswordReset = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
+
+            if (!PasswordReset.Succeeded)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
+        }
+
+              
         // GET api/Account/UserInfo
         [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
         [Route("UserInfo")]

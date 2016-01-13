@@ -14,17 +14,17 @@ o EMail funktionalitaet > DONE
 
 o Account Confirmation	> DONE
 
-o Ueberblick ueber VORTEILE von MVC verschaffen > (1)
+o Ueberblick ueber VORTEILE von MVC verschaffen > DONE
 
-o Passwort Reset Funktionalität >
-
-o Account Confirmation Resend Link >
+o Passwort Reset Funktionalität > DONE
 
 o Demoapplikation serverseitig entsprechend Ablaufplan > (1)
 
 o Client neu schreiben  > (5)
 
 >>CREATION<<
+
+o Account Confirmation Resend Link Konzept entwickeln und implementieren>
 
 o Ueberfluessige Sachen aus MVC template entfernen / Help Page deaktivieren
 
@@ -34,9 +34,9 @@ o Ueberblick ueber Exception Handling verschaffen
 
 o Ueberblick ueber Unit testing verschaffen
 
-o E-Mails auf SendGrid o.ae. umziehen / Senden async machen / 
+o E-Mails auf SendGrid o.ae. umziehen / 
   Exception Handling integrieren / SMTP Login Informationen 
-  aus Code entfernen > (2)
+  aus Code entfernen / Eine zentrale Sendefunktion machen > (2)
 
 o Cross-Origin entfernen
 
