@@ -18,13 +18,35 @@ o Ueberblick ueber VORTEILE von MVC verschaffen > DONE
 
 o Passwort Reset Funktionalität > DONE
 
-o Demoapplikation serverseitig entsprechend Ablaufplan > (1)
-
 o Client neu schreiben  > (5)
 
->>CREATION<<
+o Demoapplikation Autorisierungsfunktionen/FBS und QUE lesen und schreiben > 
+
+
+>>PROTOTYPING<< (Birgt das Thema hohes Risiko? / Handelt es sich um eine grundlegende Funktionalität?)
+
+o Seiten aufbauen
+
+o Lizenzcheck
+
+o Strategien zur Internationalisierung
 
 o Account Confirmation Resend Link Konzept entwickeln und implementieren>
+
+o >Ensure your app is reading for production< von der Projekt-Startpage lesen
+
+o Kommunikation per SSL implementieren
+
+o Deployment
+
+
+>>FINALIZING<< (Aus Sicherheits-, Usability- oder Lizenzsicht Grundvoraussetzung für eine Veröffentlichung? )
+
+o E-Mails auf SendGrid o.ae. umziehen / 
+  Exception Handling integrieren / SMTP Login Informationen 
+  aus Code entfernen / Eine zentrale Sendefunktion machen > (2)
+
+o Cross-Origin entfernen
 
 o Ueberfluessige Sachen aus MVC template entfernen / Help Page deaktivieren
 
@@ -34,24 +56,9 @@ o Ueberblick ueber Exception Handling verschaffen
 
 o Ueberblick ueber Unit testing verschaffen
 
-o E-Mails auf SendGrid o.ae. umziehen / 
-  Exception Handling integrieren / SMTP Login Informationen 
-  aus Code entfernen / Eine zentrale Sendefunktion machen > (2)
-
-o Cross-Origin entfernen
-
-o Kommunikation per SSL implementieren
-
-o >Ensure your app is reading for production< von der Projekt-Startpage lesen
-
-o Deployment
-
 o Datenbank umbenennen	
 
 o PowerShell Excecution Policy pruefen	
-
-
->>PRODUCTION<<
 
 o Cookies, Claims Ueberblick ueber ThirdParty Authorisierungen verschaffen > (5)
 
@@ -62,11 +69,12 @@ o UserManager.ConfirmEmailAsync liefert zurueck, dass Benutzer nicht vorhanden i
 
 o Anzahl an fehlgeschlagenen Anmeldeversuchen limitieren
 
+o Maximale Apizugriffe beschränken
 
 
-** ToDo Sonstiges **
-o Strategien zur Internationalisierung recherchieren (Simon)
+>>PRODUCTION<<
 
+====================================================================================
 
 
 

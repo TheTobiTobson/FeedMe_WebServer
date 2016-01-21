@@ -109,7 +109,7 @@ namespace WebServer.Controllers
         // Description:
         //     API is called when user requestes questions of a Feedbacksession
         //////////////////////////
-
+                
         [Route("~/api/Feedbackquestions/{FBS_id:int}")]
         [HttpGet]
         public async Task<IHttpActionResult> Get_FeedbackQuestions(int FBS_id)
@@ -131,7 +131,7 @@ namespace WebServer.Controllers
             }
 
             var list_of_FeedbackQuestions = (from x in db.QUE_FeedbackQuestions
-                                             where x.QUE_FBS_id == FBS_id                                                                                        
+                                             where x.QUE_FBS_id == FBS_id                                                                               
                                              select x).ToList<QUE_FeedbackQuestions>();
 
             // Hier hab ich vor Mamas besuch gestoppt //
@@ -192,7 +192,7 @@ namespace WebServer.Controllers
             //Message for testing
             await UserManager.SendEmailAsync(user.Id, "AccountConfirmation", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>UserID:" + user.Id + "</p><p>Token:" + ConfirmationToken + "</p></body></html>");
             //** END - Confirm EMail Address**//
-            
+                     
             return Ok();
         }
 
