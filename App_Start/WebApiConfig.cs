@@ -13,6 +13,9 @@ namespace WebServer
     {
         public static void Register(HttpConfiguration config)
         {
+            // Configure CORS (Cross-Origin Resource Sharing)
+            config.EnableCors();
+            
             // Web API configuration and services
             // Configure Web API to use only bearer token authentication.
             config.SuppressDefaultHostAuthentication();

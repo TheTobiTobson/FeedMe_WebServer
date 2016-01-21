@@ -10,9 +10,11 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using WebServer.Models;
+using System.Web.Http.Cors;
 
 namespace WebServer.Controllers
 {
+    [EnableCors(origins: "http://localhost:51378", headers: "*", methods: "*")]
     public class QUE_FeedbackQuestionsController : ApiController
     {
         private ApplicationDbContext db = new ApplicationDbContext();
