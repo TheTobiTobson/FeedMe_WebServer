@@ -10,11 +10,12 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using WebServer.Models;
-using System.Web.Http.Cors;
+// CORS - ROP
+//using System.Web.Http.Cors;
 
 namespace WebServer.Controllers
 {
-    [EnableCors(origins: "http://localhost:51378", headers: "*", methods: "*")]
+    //[EnableCors(origins: "http://localhost:51378", headers: "*", methods: "*")]
     public class QUE_FeedbackQuestionsController : ApiController
     {
         private ApplicationDbContext db = new ApplicationDbContext();
@@ -26,6 +27,7 @@ namespace WebServer.Controllers
             return db.QUE_FeedbackQuestions;
         }
 
+        //[Authorize]
         // GET: api/QUE_FeedbackQuestions/5
         [ResponseType(typeof(QUE_FeedbackQuestions))]
         public async Task<IHttpActionResult> GetQUE_FeedbackQuestions(int id)

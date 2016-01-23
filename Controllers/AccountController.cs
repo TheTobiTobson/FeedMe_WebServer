@@ -19,7 +19,6 @@ using WebServer.Providers;
 using WebServer.Results;
 // ResponseTypeAttribute
 using System.Web.Http.Description;
-
 // Linq Queries
 using System.Linq;
 
