@@ -7,7 +7,9 @@ using System.Web.Http;
 using Microsoft.Owin.Security.OAuth;
 using Newtonsoft.Json.Serialization;
 // CORS - ROP
+#if DEBUG  
 using System.Web.Http.Cors;
+#endif
 
 namespace WebServer
 {

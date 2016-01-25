@@ -72,6 +72,7 @@ namespace WebServer.Controllers
         //////////////////////////
         // Url:.../api/Feedbacksession
         // Method: GET
+        // Authorization Required: YES
         // Parameter: none
         // Result: List of Feedbacksessions
         // Description:
@@ -103,10 +104,11 @@ namespace WebServer.Controllers
         //////////////////////////
         // Url:.../api/Feedbackquestions/{FBS_id:int}
         // Method: GET
+        // Authorization Required: YES
         // Parameter: Primary key of Feedbacksession (int FBS_id)
         // Result: List of Questions
         // Description:
-        //     API is called when user requestes questions of a Feedbacksession
+        //     API is called when user requestes all questions of a Feedbacksession
         //////////////////////////
                 
         [Route("~/api/Feedbackquestions/{FBS_id:int}")]
@@ -149,6 +151,7 @@ namespace WebServer.Controllers
         //////////////////////////
         // Url:.../api/Account/Register
         // Method: POST
+        // Authorization Required: NO
         // Parameter: RegisterBindingModel (Email, Password, Password Confirmation)
         // Result: HTTP 200 (ok), HTTP 400(Bad Request)
         // Description:
@@ -198,6 +201,7 @@ namespace WebServer.Controllers
         //////////////////////////
         // Url:.../api/Account/AccountConfirmation
         // Method: POST
+        // Authorization Required: NO
         // Parameter: AccountConfirmationModel (userID and Token from email)
         // Result: HTTP 200 (ok), HTTP 400(Bad Request)
         // Description:
@@ -230,6 +234,7 @@ namespace WebServer.Controllers
         //////////////////////////
         // Url:.../api/Account/ForgotPassword
         // Method: POST
+        // Authorization Required: NO
         // Parameter: ForgotPasswordViewModel (Email)
         // Result: HTTP 200 (ok), HTTP 400(Bad Request)
         // Description:
@@ -272,6 +277,7 @@ namespace WebServer.Controllers
           //////////////////////////
         // Url:.../api/Account/ResetPassword
         // Method: POST
+        // Authorization Required: NO
         // Parameter: ResetPasswordViewModel (Email, Password, Confirm Password)
         // Result: HTTP 200 (ok), HTTP 400(Bad Request)
         // Description:

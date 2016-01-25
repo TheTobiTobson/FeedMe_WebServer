@@ -10,12 +10,9 @@ using System.Threading.Tasks;
 using System.Web.Http;
 using System.Web.Http.Description;
 using WebServer.Models;
-// CORS - ROP
-//using System.Web.Http.Cors;
 
 namespace WebServer.Controllers
-{
-    //[EnableCors(origins: "http://localhost:51378", headers: "*", methods: "*")]
+{   
     public class QUE_FeedbackQuestionsController : ApiController
     {
         private ApplicationDbContext db = new ApplicationDbContext();
@@ -27,31 +24,55 @@ namespace WebServer.Controllers
             return db.QUE_FeedbackQuestions;
         }
 
-        //[Authorize]
-        // GET: api/QUE_FeedbackQuestions/5
+        //////////////////////////
+        // Url:.../api/QUE_FeedbackQuestions/{id:int}
+        // Method: GET
+        // Authorization Required: NO
+        // Parameter: id of Question (id: int)
+        // Result: Specified Question
+        // Description:
+        //     API is called when Client requests a Question with the specified id
+        //////////////////////////
+
+        [Authorize]
+        [Route("test/api/Feedbacksession_protected/{id}")]
+        [HttpGet]
         [ResponseType(typeof(QUE_FeedbackQuestions))]
-        public async Task<IHttpActionResult> GetQUE_FeedbackQuestions(int id)
-        {
-
-
-            /* DB Tests - T */
-            //var test = from t in db.QUE_FeedbackQuestions
-            //               .Include(tw => tw.FBS_FeedbackSessions)
-            //           where t.FBS_FeedbackSessions.ApplicationUser.Id == "028ddef6-23f6-4fbd-bbb8-ad1e4fa365fd"
-            //           select t;
-
-            //if(!test.Any())
-            //{
-            //    return NotFound();
-            //}
-
-            //return Ok(test);
-                        
+        public async Task<IHttpActionResult> GetQUE_protectedFeedbackQuestions(int id)
+        {         
             QUE_FeedbackQuestions qUE_FeedbackQuestions = await db.QUE_FeedbackQuestions.FindAsync(id);
             if (qUE_FeedbackQuestions == null)
             {
                 return NotFound();
             }
+
+            qUE_FeedbackQuestions.QUE_text = "PROTECTED";
+
+            return Ok(qUE_FeedbackQuestions);
+        }
+
+        //////////////////////////
+        // Url:.../api/QUE_FeedbackQuestions/{id:int}
+        // Method: GET
+        // Authorization Required: NO
+        // Parameter: id of Question (id: int)
+        // Result: Specified Question
+        // Description:
+        //     API is called when Client requests a Question with the specified id
+        //////////////////////////
+
+        [Route("test/api/Feedbacksession_unprotected/{id}")]
+        [HttpGet]
+        [ResponseType(typeof(QUE_FeedbackQuestions))]
+        public async Task<IHttpActionResult> GetQUE_unprotectedFeedbackQuestions(int id)
+        {
+            QUE_FeedbackQuestions qUE_FeedbackQuestions = await db.QUE_FeedbackQuestions.FindAsync(id);
+            if (qUE_FeedbackQuestions == null)
+            {
+                return NotFound();
+            }
+
+            qUE_FeedbackQuestions.QUE_text = "UNPROTECTED";
 
             return Ok(qUE_FeedbackQuestions);
         }
