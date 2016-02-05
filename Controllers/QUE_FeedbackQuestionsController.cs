@@ -77,6 +77,8 @@ namespace WebServer.Controllers
             return Ok(qUE_FeedbackQuestions);
         }
 
+
+
         // PUT: api/QUE_FeedbackQuestions/5
         [ResponseType(typeof(void))]
         public async Task<IHttpActionResult> PutQUE_FeedbackQuestions(int id, QUE_FeedbackQuestions qUE_FeedbackQuestions)
@@ -91,6 +93,8 @@ namespace WebServer.Controllers
                 return BadRequest();
             }
 
+            // When you change the state to Modified all the properties of the entity will be marked 
+            // as modified and all the property values will be sent to the database when SaveChanges is called. 
             db.Entry(qUE_FeedbackQuestions).State = EntityState.Modified;
 
             try

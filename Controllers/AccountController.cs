@@ -1,5 +1,11 @@
 ﻿using System;
+// Entity State (Modified,...)
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Collections.Generic;
+//HttpStatusCode
+using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -131,11 +137,24 @@ namespace WebServer.Controllers
                 return BadRequest("Requested Feedbacksession is not owned by this user");    
             }
 
-            var list_of_FeedbackQuestions = (from x in db.QUE_FeedbackQuestions
-                                             where x.QUE_FBS_id == FBS_id                                                                               
-                                             select x).ToList<QUE_FeedbackQuestions>();
+            //var list_of_FeedbackQuestions = (from x in db.QUE_FeedbackQuestions
+            //                                 where x.QUE_FBS_id == FBS_id                                             
+            //                                 select x).ToList<QUE_FeedbackQuestions>();
 
-            // Hier hab ich vor Mamas besuch gestoppt //
+            var list_of_FeedbackQuestions = from x in db.QUE_FeedbackQuestions
+                                             where x.QUE_FBS_id == FBS_id
+                                             select new QUE_FeedbackQuestionsDTO()
+                                             { QUE_id = x.QUE_id,
+                                               QUE_position = x.QUE_position,
+                                               QUE_text = x.QUE_text,
+                                               QUE_answerRadioButton = x.QUE_answerRadioButton,
+                                               QUE_title = x.QUE_title,
+                                               QUE_type = x.QUE_type,
+                                               QUE_showQuestionInFeedback = x.QUE_showQuestionInFeedback,
+                                               QUE_creationDate = x.QUE_creationDate
+                                             };
+
+
 
             if (!list_of_FeedbackQuestions.Any())
             {
@@ -144,8 +163,82 @@ namespace WebServer.Controllers
 
             return Ok(list_of_FeedbackQuestions);
         }
-        
-        
+
+        //////////////////////////
+        // Url:.../api/Feedbackquestion/{QUE_id:int}
+        // Method: PUT
+        // Authorization Required: YES
+        // Parameter: Primary key of Feedbackquestion (int QUE_id)
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request), HTTP 404(Not Found)
+        // Description:
+        //     API updates the Feedbackquestion specified in QUE_id
+        //////////////////////////
+
+        [Route("~/api/Feedbackquestion")]
+        [HttpPut]
+        public async Task<IHttpActionResult> Update_FeedbackQuestion(QUE_FeedbackQuestions qUE_FeedbackQuestions)
+        {
+
+            // Get user id
+            ApplicationUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());          
+
+            if (qUE_FeedbackQuestions == null)
+            {
+                return BadRequest("Requsts is missing a question model ");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            //if (QUE_id != qUE_FeedbackQuestions.QUE_id)
+            //{
+            //    return BadRequest();
+            //}
+
+            // Get question that is supposed to get updated
+            var QuestionToGetUpdated = await db.QUE_FeedbackQuestions.AsNoTracking()
+                .Include(b => b.FBS_FeedbackSessions)
+                .SingleOrDefaultAsync(x => x.QUE_id == qUE_FeedbackQuestions.QUE_id);
+                
+
+            // Check if Question exists //
+            if(QuestionToGetUpdated == null)
+            {
+                return NotFound();
+            }
+
+            // Check if question is part of a feedbacksession that is owned by this user //
+            if (QuestionToGetUpdated.FBS_FeedbackSessions.FBS_ApplicationUser_Id != user.Id)
+            {
+                return BadRequest("Requested Feedbackquestion is not owned by this user");
+            }                      
+
+            // When you change the state to Modified all the properties of the entity will be marked 
+            // as modified and all the property values will be sent to the database when SaveChanges is called. 
+            db.Entry(qUE_FeedbackQuestions).State = EntityState.Modified;
+
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!QUE_FeedbackQuestionsExists(qUE_FeedbackQuestions.QUE_id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+
         /*** Code for Account API ***/
         
         //////////////////////////
@@ -621,7 +714,7 @@ namespace WebServer.Controllers
         }
 
         /*** General Account Controller Code ***/
-        // Free ressources utilized by this class - T
+        // Free ressources utilized by this class //
         protected override void Dispose(bool disposing)
         {
             if (disposing && _userManager != null)
@@ -631,6 +724,12 @@ namespace WebServer.Controllers
             }
 
             base.Dispose(disposing);
+        }
+
+        // Check if a QUE_Feedbacksession is existing //
+        private bool QUE_FeedbackQuestionsExists(int id)
+        {
+            return db.QUE_FeedbackQuestions.Count(e => e.QUE_id == id) > 0;
         }
 
         #region Helpers

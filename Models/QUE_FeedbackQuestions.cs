@@ -8,8 +8,7 @@ using System.ComponentModel.DataAnnotations;
 namespace WebServer.Models
 {
     public class QUE_FeedbackQuestions
-    {
-        
+    {        
         [Key]
         public int QUE_id { get; set; }
         
@@ -42,5 +41,17 @@ namespace WebServer.Models
         public int QUE_FBS_id { get; set; }       
 
         public FBS_FeedbackSessions FBS_FeedbackSessions { get; set; }
+    }
+
+    public class QUE_FeedbackQuestionsDTO
+    {        
+        public int QUE_id { get; set; }
+        public int QUE_position { get; set; }
+        public string QUE_text { get; set; }
+        public string QUE_answerRadioButton { get; set; }
+        public string QUE_title { get; set; }
+        public string QUE_type { get; set; }
+        public bool QUE_showQuestionInFeedback { get; set; }
+        public int QUE_creationDate { get; set; }
     }
 }
