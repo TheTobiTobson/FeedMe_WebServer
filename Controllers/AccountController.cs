@@ -201,8 +201,7 @@ namespace WebServer.Controllers
             var QuestionToGetUpdated = await db.QUE_FeedbackQuestions.AsNoTracking()
                 .Include(b => b.FBS_FeedbackSessions)
                 .SingleOrDefaultAsync(x => x.QUE_id == qUE_FeedbackQuestions.QUE_id);
-                
-
+              
             // Check if Question exists //
             if(QuestionToGetUpdated == null)
             {
@@ -213,7 +212,11 @@ namespace WebServer.Controllers
             if (QuestionToGetUpdated.FBS_FeedbackSessions.FBS_ApplicationUser_Id != user.Id)
             {
                 return BadRequest("Requested Feedbackquestion is not owned by this user");
-            }                      
+            }
+
+            // Client sends no information regarding to which FBS the question belongs //
+            // This has to be added serverside //
+            qUE_FeedbackQuestions.QUE_FBS_id = QuestionToGetUpdated.QUE_FBS_id;
 
             // When you change the state to Modified all the properties of the entity will be marked 
             // as modified and all the property values will be sent to the database when SaveChanges is called. 
