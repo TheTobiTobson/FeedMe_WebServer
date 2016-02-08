@@ -191,12 +191,7 @@ namespace WebServer.Controllers
             {
                 return BadRequest(ModelState);
             }
-
-            //if (QUE_id != qUE_FeedbackQuestions.QUE_id)
-            //{
-            //    return BadRequest();
-            //}
-
+            
             // Get question that is supposed to get updated
             var QuestionToGetUpdated = await db.QUE_FeedbackQuestions.AsNoTracking()
                 .Include(b => b.FBS_FeedbackSessions)
