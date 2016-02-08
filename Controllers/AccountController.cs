@@ -151,6 +151,7 @@ namespace WebServer.Controllers
                                                QUE_title = x.QUE_title,
                                                QUE_type = x.QUE_type,
                                                QUE_showQuestionInFeedback = x.QUE_showQuestionInFeedback,
+                                               QUE_FBS_id = x.QUE_FBS_id,
                                                QUE_creationDate = x.QUE_creationDate
                                              };
 
@@ -209,9 +210,15 @@ namespace WebServer.Controllers
                 return BadRequest("Requested Feedbackquestion is not owned by this user");
             }
 
+            // Check if FBS is manipulated //
+            if (QuestionToGetUpdated.QUE_FBS_id != qUE_FeedbackQuestions.QUE_FBS_id)
+            {
+                return BadRequest("Seems like the Session ID is wrong");
+            }
+
             // Client sends no information regarding to which FBS the question belongs //
             // This has to be added serverside //
-            qUE_FeedbackQuestions.QUE_FBS_id = QuestionToGetUpdated.QUE_FBS_id;
+            //qUE_FeedbackQuestions.QUE_FBS_id = QuestionToGetUpdated.QUE_FBS_id;
 
             // When you change the state to Modified all the properties of the entity will be marked 
             // as modified and all the property values will be sent to the database when SaveChanges is called. 

@@ -52,6 +52,7 @@ namespace WebServer.Models
         public string QUE_title { get; set; }
         public string QUE_type { get; set; }
         public bool QUE_showQuestionInFeedback { get; set; }
+        public int QUE_FBS_id { get; set; }       
         public int QUE_creationDate { get; set; }
     }
 }
