@@ -166,10 +166,10 @@ namespace WebServer.Controllers
         }
 
         //////////////////////////
-        // Url:.../api/Feedbackquestion/{QUE_id:int}
+        // Url:.../api/Feedbackquestion
         // Method: PUT
         // Authorization Required: YES
-        // Parameter: Primary key of Feedbackquestion (int QUE_id)
+        // Parameter: QUE_FeedbackQuestions data to be updated
         // Result: HTTP 200 (ok), HTTP 400(Bad Request), HTTP 404(Not Found)
         // Description:
         //     API updates the Feedbackquestion specified in QUE_id
@@ -215,11 +215,7 @@ namespace WebServer.Controllers
             {
                 return BadRequest("Seems like the Session ID is wrong");
             }
-
-            // Client sends no information regarding to which FBS the question belongs //
-            // This has to be added serverside //
-            //qUE_FeedbackQuestions.QUE_FBS_id = QuestionToGetUpdated.QUE_FBS_id;
-
+                       
             // When you change the state to Modified all the properties of the entity will be marked 
             // as modified and all the property values will be sent to the database when SaveChanges is called. 
             db.Entry(qUE_FeedbackQuestions).State = EntityState.Modified;
@@ -243,6 +239,57 @@ namespace WebServer.Controllers
             return StatusCode(HttpStatusCode.NoContent);
         }
 
+        //////////////////////////
+        // Url:.../api/Feedbackquestion
+        // Method: POST
+        // Authorization Required: YES
+        // Parameter: QUE_FeedbackQuestions data to be added
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request), HTTP 404(Not Found)
+        // Description:
+        //     API adds a new Feedbackquestion to a Feedbacksession
+        //////////////////////////
+
+        [Route("~/api/Feedbackquestion")]
+        [HttpPost]
+        public async Task<IHttpActionResult> Add_FeedbackQuestion(QUE_FeedbackQuestions qUE_FeedbackQuestions)
+        {
+            // Get user id
+            ApplicationUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
+
+            if (qUE_FeedbackQuestions == null)
+            {
+                return BadRequest("Requsts is missing a question model ");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Get Feedbacksession that is supposed to get a new question
+            var FeedbacksessioForNewQuestion = await db.FBS_FeedbackSessions.AsNoTracking()                
+                .SingleOrDefaultAsync(x => x.FBS_id == qUE_FeedbackQuestions.QUE_FBS_id);
+
+            // Check if Question exists //
+            if (FeedbacksessioForNewQuestion == null)
+            {
+                return NotFound();
+            }
+
+            // Check if user owns the feedbacksession to which he wants to add a question
+            if(FeedbacksessioForNewQuestion.FBS_ApplicationUser_Id != user.Id)
+            {
+                return BadRequest("Requested Feedbackquestion is not owned by this user");
+            }
+
+            // Write data to database
+            db.QUE_FeedbackQuestions.Add(qUE_FeedbackQuestions);
+            await db.SaveChangesAsync();
+
+            // POST Response is supposed to include URL to newly created ressource //
+            // This implematation ignores that //
+            return Ok(qUE_FeedbackQuestions);
+        }
 
         /*** Code for Account API ***/
         
