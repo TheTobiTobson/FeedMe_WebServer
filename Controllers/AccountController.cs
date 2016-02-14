@@ -291,6 +291,53 @@ namespace WebServer.Controllers
             return Ok(qUE_FeedbackQuestions);
         }
 
+        //////////////////////////
+        // Url:.../api/Feedbackquestions/{QUE_id:int}
+        // Method: DELETE
+        // Authorization Required: YES
+        // Parameter: Primary key of Feedbackquestion (int QUE_id)
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request), HTTP 404(Not Found)
+        // Description:
+        //     API is called when user deletes a Feedbackquestion
+        //////////////////////////
+
+        [Route("~/api/Feedbackquestions/{QUE_id:int}")]
+        [HttpDelete]
+        public async Task<IHttpActionResult> Delete_FeedbackQuestions(int QUE_id)
+        {
+            // Get user id
+            ApplicationUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
+
+            QUE_FeedbackQuestions QuestionToDelete = await db.QUE_FeedbackQuestions.FindAsync(QUE_id);
+                     
+            // Check if Question exists //
+            if (QuestionToDelete == null)
+            {
+                return NotFound();
+            }
+
+            // Get FBS that belongs to question that is supposed to get deleted
+            var FBSthatBelongsToQuestion = await db.FBS_FeedbackSessions.AsNoTracking()
+                .SingleOrDefaultAsync(c => c.FBS_id == QuestionToDelete.QUE_FBS_id);
+
+            // Check if Question exists //
+            if (FBSthatBelongsToQuestion == null)
+            {
+                return NotFound();
+            }
+
+            // Check if question is part of a feedbacksession that is owned by this user //
+            if (FBSthatBelongsToQuestion.FBS_ApplicationUser_Id != user.Id)
+            {
+                return BadRequest("Requested Feedbackquestion is not owned by this user");
+            }
+
+            db.QUE_FeedbackQuestions.Remove(QuestionToDelete);
+            await db.SaveChangesAsync();
+
+            return Ok(QuestionToDelete);            
+        }
+
         /*** Code for Account API ***/
         
         //////////////////////////
