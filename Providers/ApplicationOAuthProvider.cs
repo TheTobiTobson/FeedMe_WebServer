@@ -36,6 +36,12 @@ namespace WebServer.Providers
 
         public override async Task GrantResourceOwnerCredentials(OAuthGrantResourceOwnerCredentialsContext context)
         {
+
+            // Set Headers in order to allow Credentialsflow cross origin //
+#if DEBUG         
+            context.OwinContext.Response.Headers.Add("Access-Control-Allow-Origin", new[] { "http://localhost:51378" });
+            context.OwinContext.Response.Headers.Add("Access-Control-Allow-Credentials", new[] { "true" });
+#endif
             var userManager = context.OwinContext.GetUserManager<ApplicationUserManager>();
 
             ApplicationUser user = await userManager.FindAsync(context.UserName, context.Password);
@@ -43,6 +49,13 @@ namespace WebServer.Providers
             if (user == null)
             {
                 context.SetError("invalid_grant", "The user name or password is incorrect.");
+                return;
+            }
+
+            //*** Check if Account is confirmed ***//
+            if (!user.EmailConfirmed) //Email is not confirmed
+            {
+                context.SetError("Account_Not_Confirmed", "In order to login you need to confirm your email account");                
                 return;
             }
 

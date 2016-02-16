@@ -1,5 +1,11 @@
 ﻿using System;
+// Entity State (Modified,...)
+using System.Data;
+using System.Data.Entity;
+using System.Data.Entity.Infrastructure;
 using System.Collections.Generic;
+//HttpStatusCode
+using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -19,7 +25,6 @@ using WebServer.Providers;
 using WebServer.Results;
 // ResponseTypeAttribute
 using System.Web.Http.Description;
-
 // Linq Queries
 using System.Linq;
 
@@ -48,7 +53,7 @@ namespace WebServer.Controllers
             AccessTokenFormat = accessTokenFormat;
         }
 
-        // Accessor: Defines how to read and write UserManager - T
+        // Accessor: Defines how to read and write UserManager //
         public ApplicationUserManager UserManager
         {
             get
@@ -73,6 +78,7 @@ namespace WebServer.Controllers
         //////////////////////////
         // Url:.../api/Feedbacksession
         // Method: GET
+        // Authorization Required: YES
         // Parameter: none
         // Result: List of Feedbacksessions
         // Description:
@@ -84,7 +90,7 @@ namespace WebServer.Controllers
         public async Task<IHttpActionResult> Get_FeedbackSessions()
         {
             // Get user id
-            IdentityUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
+            ApplicationUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
 
             var list_of_FeedbackSessions = (from x in db.FBS_FeedbackSessions
                                                 where x.FBS_ApplicationUser_Id == user.Id
@@ -104,18 +110,19 @@ namespace WebServer.Controllers
         //////////////////////////
         // Url:.../api/Feedbackquestions/{FBS_id:int}
         // Method: GET
+        // Authorization Required: YES
         // Parameter: Primary key of Feedbacksession (int FBS_id)
         // Result: List of Questions
         // Description:
-        //     API is called when user requestes questions of a Feedbacksession
+        //     API is called when user requestes all questions of a Feedbacksession
         //////////////////////////
-
+                
         [Route("~/api/Feedbackquestions/{FBS_id:int}")]
         [HttpGet]
         public async Task<IHttpActionResult> Get_FeedbackQuestions(int FBS_id)
         {
             // Get user id
-            IdentityUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
+            ApplicationUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
 
             // Check if requested Feedbacksession is available
             FBS_FeedbackSessions fBS_FeedbackSessions = await db.FBS_FeedbackSessions.FindAsync(FBS_id);
@@ -130,11 +137,25 @@ namespace WebServer.Controllers
                 return BadRequest("Requested Feedbacksession is not owned by this user");    
             }
 
-            var list_of_FeedbackQuestions = (from x in db.QUE_FeedbackQuestions
-                                             where x.QUE_FBS_id == FBS_id                                                                                        
-                                             select x).ToList<QUE_FeedbackQuestions>();
+            //var list_of_FeedbackQuestions = (from x in db.QUE_FeedbackQuestions
+            //                                 where x.QUE_FBS_id == FBS_id                                             
+            //                                 select x).ToList<QUE_FeedbackQuestions>();
 
-            // Hier hab ich vor Mamas besuch gestoppt //
+            var list_of_FeedbackQuestions = from x in db.QUE_FeedbackQuestions
+                                             where x.QUE_FBS_id == FBS_id
+                                             select new QUE_FeedbackQuestionsDTO()
+                                             { QUE_id = x.QUE_id,
+                                               QUE_position = x.QUE_position,
+                                               QUE_text = x.QUE_text,
+                                               QUE_answerRadioButton = x.QUE_answerRadioButton,
+                                               QUE_title = x.QUE_title,
+                                               QUE_type = x.QUE_type,
+                                               QUE_showQuestionInFeedback = x.QUE_showQuestionInFeedback,
+                                               QUE_FBS_id = x.QUE_FBS_id,
+                                               QUE_creationDate = x.QUE_creationDate
+                                             };
+
+
 
             if (!list_of_FeedbackQuestions.Any())
             {
@@ -143,9 +164,350 @@ namespace WebServer.Controllers
 
             return Ok(list_of_FeedbackQuestions);
         }
-        
-        
+
+        //////////////////////////
+        // Url:.../api/Feedbackquestion
+        // Method: PUT
+        // Authorization Required: YES
+        // Parameter: QUE_FeedbackQuestions data to be updated
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request), HTTP 404(Not Found)
+        // Description:
+        //     API updates the Feedbackquestion specified in QUE_id
+        //////////////////////////
+
+        [Route("~/api/Feedbackquestion")]
+        [HttpPut]
+        public async Task<IHttpActionResult> Update_FeedbackQuestion(QUE_FeedbackQuestions qUE_FeedbackQuestions)
+        {
+
+            // Get user id
+            ApplicationUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());          
+
+            if (qUE_FeedbackQuestions == null)
+            {
+                return BadRequest("Requsts is missing a question model ");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            
+            // Get question that is supposed to get updated
+            var QuestionToGetUpdated = await db.QUE_FeedbackQuestions.AsNoTracking()
+                .Include(b => b.FBS_FeedbackSessions)
+                .SingleOrDefaultAsync(x => x.QUE_id == qUE_FeedbackQuestions.QUE_id);
+              
+            // Check if Question exists //
+            if(QuestionToGetUpdated == null)
+            {
+                return NotFound();
+            }
+
+            // Check if question is part of a feedbacksession that is owned by this user //
+            if (QuestionToGetUpdated.FBS_FeedbackSessions.FBS_ApplicationUser_Id != user.Id)
+            {
+                return BadRequest("Requested Feedbackquestion is not owned by this user");
+            }
+
+            // Check if FBS is manipulated //
+            if (QuestionToGetUpdated.QUE_FBS_id != qUE_FeedbackQuestions.QUE_FBS_id)
+            {
+                return BadRequest("Seems like the Session ID is wrong");
+            }
+                       
+            // When you change the state to Modified all the properties of the entity will be marked 
+            // as modified and all the property values will be sent to the database when SaveChanges is called. 
+            db.Entry(qUE_FeedbackQuestions).State = EntityState.Modified;
+
+            try
+            {
+                await db.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!QUE_FeedbackQuestionsExists(qUE_FeedbackQuestions.QUE_id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return StatusCode(HttpStatusCode.NoContent);
+        }
+
+        //////////////////////////
+        // Url:.../api/Feedbackquestion
+        // Method: POST
+        // Authorization Required: YES
+        // Parameter: QUE_FeedbackQuestions data to be added
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request), HTTP 404(Not Found)
+        // Description:
+        //     API adds a new Feedbackquestion to a Feedbacksession
+        //////////////////////////
+
+        [Route("~/api/Feedbackquestion")]
+        [HttpPost]
+        public async Task<IHttpActionResult> Add_FeedbackQuestion(QUE_FeedbackQuestions qUE_FeedbackQuestions)
+        {
+            // Get user id
+            ApplicationUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
+
+            if (qUE_FeedbackQuestions == null)
+            {
+                return BadRequest("Requsts is missing a question model ");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Get Feedbacksession that is supposed to get a new question
+            var FeedbacksessioForNewQuestion = await db.FBS_FeedbackSessions.AsNoTracking()                
+                .SingleOrDefaultAsync(x => x.FBS_id == qUE_FeedbackQuestions.QUE_FBS_id);
+
+            // Check if Question exists //
+            if (FeedbacksessioForNewQuestion == null)
+            {
+                return NotFound();
+            }
+
+            // Check if user owns the feedbacksession to which he wants to add a question
+            if(FeedbacksessioForNewQuestion.FBS_ApplicationUser_Id != user.Id)
+            {
+                return BadRequest("Requested Feedbackquestion is not owned by this user");
+            }
+
+            // Write data to database
+            db.QUE_FeedbackQuestions.Add(qUE_FeedbackQuestions);
+            await db.SaveChangesAsync();
+
+            // POST Response is supposed to include URL to newly created ressource //
+            // This implematation ignores that //
+            return Ok(qUE_FeedbackQuestions);
+        }
+
+        ///////////////////////////
+        // Url:.../api/Feedbackquestions/{QUE_id:int}
+        // Method: DELETE
+        // Authorization Required: YES
+        // Parameter: Primary key of Feedbackquestion (int QUE_id)
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request), HTTP 404(Not Found)
+        // Description:
+        //     API is called when user deletes a Feedbackquestion
+        ///////////////////////////
+
+        [Route("~/api/Feedbackquestions/{QUE_id:int}")]
+        [HttpDelete]
+        public async Task<IHttpActionResult> Delete_FeedbackQuestions(int QUE_id)
+        {
+            // Get user id
+            ApplicationUser user = await UserManager.FindByIdAsync(User.Identity.GetUserId());
+
+            QUE_FeedbackQuestions QuestionToDelete = await db.QUE_FeedbackQuestions.FindAsync(QUE_id);
+                     
+            // Check if Question exists //
+            if (QuestionToDelete == null)
+            {
+                return NotFound();
+            }
+
+            // Get FBS that belongs to question that is supposed to get deleted
+            var FBSthatBelongsToQuestion = await db.FBS_FeedbackSessions.AsNoTracking()
+                .SingleOrDefaultAsync(c => c.FBS_id == QuestionToDelete.QUE_FBS_id);
+
+            // Check if Question exists //
+            if (FBSthatBelongsToQuestion == null)
+            {
+                return NotFound();
+            }
+
+            // Check if question is part of a feedbacksession that is owned by this user //
+            if (FBSthatBelongsToQuestion.FBS_ApplicationUser_Id != user.Id)
+            {
+                return BadRequest("Requested Feedbackquestion is not owned by this user");
+            }
+
+            db.QUE_FeedbackQuestions.Remove(QuestionToDelete);
+            await db.SaveChangesAsync();
+
+            return Ok(QuestionToDelete);            
+        }
+
         /*** Code for Account API ***/
+        
+        //////////////////////////
+        // Url:.../api/Account/Register
+        // Method: POST
+        // Authorization Required: NO
+        // Parameter: RegisterBindingModel (Email, Password, Password Confirmation)
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request)
+        // Description:
+        //     API is called when user wants to register an account
+        //////////////////////////
+             
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("Register")]
+        public async Task<IHttpActionResult> Register(RegisterBindingModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Create the user data structure // 
+            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
+
+            // User Manager gets user to creates a new user. Password is a parameter cause the user manager does password hashing //
+            IdentityResult result = await UserManager.CreateAsync(user, model.Password);
+
+            if (!result.Succeeded)
+            {
+                return GetErrorResult(result);
+            }
+
+            //** Confirm EMail Address**//
+            // Generate Token
+            string ConfirmationToken = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
+
+            //Generate URI for E-Mail  
+            string uriWithToken = Url.Link("AccountConfirmationRoute", null);
+            //string uriWithToken = Url.Link()
+
+            // Send E-Mail with UserManager
+            //DO NOT DELETE > Message for E-Mail Functionality//
+            //await UserManager.SendEmailAsync(user.Id, "AccountConfirmation", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>Please verify your Account by clicking on following link</p><p><a href=\"" + uriWithToken + "\">CONFIRM ACCOUNT</a></p></body></html>");
+
+            //Message for testing
+            await UserManager.SendEmailAsync(user.Id, "AccountConfirmation", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>UserID:" + user.Id + "</p><p>Token:" + ConfirmationToken + "</p></body></html>");
+            //** END - Confirm EMail Address**//
+                     
+            return Ok();
+        }
+
+        //////////////////////////
+        // Url:.../api/Account/AccountConfirmation
+        // Method: POST
+        // Authorization Required: NO
+        // Parameter: AccountConfirmationModel (userID and Token from email)
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request)
+        // Description:
+        //     API is called when user clicks on Account Confirmation Link
+        //     which is sent via email.
+        //////////////////////////
+
+        [AllowAnonymous]
+        [HttpPost]
+        [Route("AccountConfirmation", Name = "AccountConfirmationRoute")]
+        public async Task<IHttpActionResult> AccountConfirmation(AccountConfirmationModel model)
+        {
+            //throw new System.NotImplementedException();
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("UserID or Confirmation Token is wrong.");
+            }
+
+            IdentityResult result = await UserManager.ConfirmEmailAsync(model.userID, model.ConfirmationToken);
+
+            if (!result.Succeeded)
+            {
+                return GetErrorResult(result);
+            }
+
+            return Ok();
+        }
+
+        //////////////////////////
+        // Url:.../api/Account/ForgotPassword
+        // Method: POST
+        // Authorization Required: NO
+        // Parameter: ForgotPasswordViewModel (Email)
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request)
+        // Description:
+        //     API is called when user wants to reset password
+        //////////////////////////
+
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("ForgotPassword")]
+        public async Task<IHttpActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Find user based on email address //
+            ApplicationUser user = await UserManager.FindByEmailAsync(model.Email);
+
+            if (user == null || !(user.EmailConfirmed))
+            {
+                // User was not found or has no confirmed email address //
+                // Don't let anyone this > send OK //
+                return Ok();
+            }
+
+            //*** Send ResetToken ***//
+            string ResetToken = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
+           
+            //Generate URI for E-Mail  
+            string uriWithToken = Url.Link("ResetPasswordRoute", null);
+
+            //Message for testing
+            await UserManager.SendEmailAsync(user.Id, "Password Reset", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>UserID:" + user.Id + "</p><p>PW Reset Token:" + ResetToken + "</p></body></html>");
+            
+            // everything is good //
+            return Ok();
+        }
+
+          //////////////////////////
+        // Url:.../api/Account/ResetPassword
+        // Method: POST
+        // Authorization Required: NO
+        // Parameter: ResetPasswordViewModel (Email, Password, Confirm Password)
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request)
+        // Description:
+        //     API is called when user clicks on link in password reset email
+        //////////////////////////
+        
+        [HttpPost]
+        [AllowAnonymous]
+        [Route("ResetPassword", Name = "ResetPasswordRoute")]
+        public async Task<IHttpActionResult> ResetPassword(ResetPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            ApplicationUser user = await UserManager.FindByIdAsync(model.userID);
+          //  UserManager.find
+
+            if (user == null)
+            {
+                // Specified user does not exist //
+                // Don't let anyone this > send OK //
+                return Ok();
+            }
+
+            //*** Reset Password ***//
+            IdentityResult PasswordReset = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
+
+            if (!PasswordReset.Succeeded)
+            {
+                return BadRequest();
+            }
+
+            return Ok();
+        }
+
+              
         // GET api/Account/UserInfo
         [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
         [Route("UserInfo")]
@@ -413,50 +775,7 @@ namespace WebServer.Controllers
             return logins;
         }
 
-        // POST api/Account/ConfirmEmail
-        [AllowAnonymous]        
-        [Route("ConfirmEmail/{userId}/{code}", Name = "ConfirmEmailRoute")]
-        public async Task<IHttpActionResult> ConfirmEmail(string userId = "", string emailCode = "")
-        {
-            return Ok();
-        }
-
-        // POST api/Account/Register
-        [AllowAnonymous]
-        [Route("Register")]
-        public async Task<IHttpActionResult> Register(RegisterBindingModel model)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            // Create the user data structure // 
-            var user = new ApplicationUser() { UserName = model.Email, Email = model.Email };
-
-            // User Manager gets user to creates a new user. Password is a parameter cause the user manager does password hashing //
-            IdentityResult result = await UserManager.CreateAsync(user, model.Password);
-
-            if (!result.Succeeded)
-            {
-                return GetErrorResult(result);
-            }
-
-            //** Confirm EMail Address**//
-            // Generate Token
-            string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
-            //Generate URI for E-Mail            
-            //var callbackurl = new Uri(Url.Link("ConfirmEmailRoute", new { userId = user.Id, emailCode = code }));
-            string callbackurl = "http://localhost:54599/api/Account/ConfirmEmail/" + code;
-
-            
-            // Send E-Mail with UserManager
-            await UserManager.SendEmailAsync(user.Id, "E-Mail-Adresse: Bestätigung", "Bitte klicken Sie auf folgenden Link:" + callbackurl);
-
-            //** END - Confirm EMail Address**//
-
-            return Ok();
-        }
+      
 
 
 
@@ -494,7 +813,7 @@ namespace WebServer.Controllers
         }
 
         /*** General Account Controller Code ***/
-        // Free ressources utilized by this class - T
+        // Free ressources utilized by this class //
         protected override void Dispose(bool disposing)
         {
             if (disposing && _userManager != null)
@@ -504,6 +823,12 @@ namespace WebServer.Controllers
             }
 
             base.Dispose(disposing);
+        }
+
+        // Check if a QUE_Feedbacksession is existing //
+        private bool QUE_FeedbackQuestionsExists(int id)
+        {
+            return db.QUE_FeedbackQuestions.Count(e => e.QUE_id == id) > 0;
         }
 
         #region Helpers

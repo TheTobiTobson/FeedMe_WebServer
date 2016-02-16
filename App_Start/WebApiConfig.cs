@@ -6,6 +6,10 @@ using System.Net.Http;
 using System.Web.Http;
 using Microsoft.Owin.Security.OAuth;
 using Newtonsoft.Json.Serialization;
+// CORS - ROP
+#if DEBUG  
+using System.Web.Http.Cors;
+#endif
 
 namespace WebServer
 {
@@ -13,6 +17,13 @@ namespace WebServer
     {
         public static void Register(HttpConfiguration config)
         {
+            //////CORS  - REMOVE ON PRODUCTION //////           
+            //config.EnableCors();
+
+#if DEBUG
+            var cors = new EnableCorsAttribute("http://localhost:51378", "*", "*");
+            config.EnableCors(cors);
+#endif  
             // Web API configuration and services
             // Configure Web API to use only bearer token authentication.
             config.SuppressDefaultHostAuthentication();
