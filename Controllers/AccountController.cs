@@ -291,7 +291,7 @@ namespace WebServer.Controllers
             return Ok(qUE_FeedbackQuestions);
         }
 
-        //////////////////////////
+        ///////////////////////////
         // Url:.../api/Feedbackquestions/{QUE_id:int}
         // Method: DELETE
         // Authorization Required: YES
@@ -299,7 +299,7 @@ namespace WebServer.Controllers
         // Result: HTTP 200 (ok), HTTP 400(Bad Request), HTTP 404(Not Found)
         // Description:
         //     API is called when user deletes a Feedbackquestion
-        //////////////////////////
+        ///////////////////////////
 
         [Route("~/api/Feedbackquestions/{QUE_id:int}")]
         [HttpDelete]
