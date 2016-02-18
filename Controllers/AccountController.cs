@@ -157,10 +157,10 @@ namespace WebServer.Controllers
 
 
 
-            if (!list_of_FeedbackQuestions.Any())
-            {
-                return NotFound();
-            }
+            //if (!list_of_FeedbackQuestions.Any())
+            //{
+            //    return NotFound();
+            //}
 
             return Ok(list_of_FeedbackQuestions);
         }
@@ -371,26 +371,25 @@ namespace WebServer.Controllers
                 return GetErrorResult(result);
             }
 
-            //** Confirm EMail Address**//
             // Generate Token
             string ConfirmationToken = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
 
-            //Generate URI for E-Mail  
-            string uriWithToken = Url.Link("AccountConfirmationRoute", null);
-            //string uriWithToken = Url.Link()
+            // Generate Link to AccountConfirmation API
+            string uriToConfirmationApi = Url.Link("AccountConfirmationRoute", null);
 
-            // Send E-Mail with UserManager
-            //DO NOT DELETE > Message for E-Mail Functionality//
-            //await UserManager.SendEmailAsync(user.Id, "AccountConfirmation", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>Please verify your Account by clicking on following link</p><p><a href=\"" + uriWithToken + "\">CONFIRM ACCOUNT</a></p></body></html>");
-
-            //Message for testing
-            await UserManager.SendEmailAsync(user.Id, "AccountConfirmation", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>UserID:" + user.Id + "</p><p>Token:" + ConfirmationToken + "</p></body></html>");
-            //** END - Confirm EMail Address**//
+            // Encode Token UrlSafe
+            string ConfirmationTokenUrlSafeEncoded = System.Web.HttpUtility.UrlEncode(ConfirmationToken);
+           
+            // Compose final link with userID and Token
+            string uriToApiWithToken = uriToConfirmationApi + "?userID=" + user.Id + "&emailToken=" + ConfirmationTokenUrlSafeEncoded;
+            
+            // Build HTML output and send email
+            await UserManager.SendEmailAsync(user.Id, "AccountConfirmation", "<!DOCTYPE html><html><head><title>Account Confirmation</title></head><body><h1>Welcome to FeedMe</h1><p>Please verify your Account by clicking on following link.</p><p><a href=\"" + uriToApiWithToken + "\">CONFIRM ACCOUNT</a></p></body></html>");
                      
             return Ok();
         }
 
-        //////////////////////////
+        ////////////////////////// VERSION 1
         // Url:.../api/Account/AccountConfirmation
         // Method: POST
         // Authorization Required: NO
@@ -401,26 +400,63 @@ namespace WebServer.Controllers
         //     which is sent via email.
         //////////////////////////
 
+        //[AllowAnonymous]
+        //[HttpPost]
+        //[Route("AccountConfirmation", Name = "AccountConfirmationRoute")]
+        //public async Task<IHttpActionResult> AccountConfirmation(AccountConfirmationModel model)
+        //{
+        //    //throw new System.NotImplementedException();
+
+        //    if (!ModelState.IsValid)
+        //    {
+        //        return BadRequest("UserID or Confirmation Token is wrong.");
+        //    }
+
+        //    IdentityResult result = await UserManager.ConfirmEmailAsync(model.userID, model.ConfirmationToken);
+
+        //    if (!result.Succeeded)
+        //    {
+        //        return GetErrorResult(result);
+        //    }
+
+        //    return Ok();
+        //}
+
+        ////////////////////////// VERSION 2
+        // Url:.../api/Account/AccountConfirmation
+        // Method: POST
+        // Authorization Required: NO
+        // Parameter: string userID, string emailToken
+        // Result: HTTP 200 (ok), HTTP 400(Bad Request)
+        // Description:
+        //     API is called when user clicks on Account Confirmation Link
+        //     which is sent via email. This Version accepts parameters via query string
+        //////////////////////////
+
         [AllowAnonymous]
-        [HttpPost]
+        [HttpGet]
         [Route("AccountConfirmation", Name = "AccountConfirmationRoute")]
-        public async Task<IHttpActionResult> AccountConfirmation(AccountConfirmationModel model)
+        public async Task<IHttpActionResult> AccountConfirmation(string userID, string emailToken)
         {
             //throw new System.NotImplementedException();
 
-            if (!ModelState.IsValid)
-            {
-                return BadRequest("UserID or Confirmation Token is wrong.");
-            }
+           if (string.IsNullOrWhiteSpace(userID) || string.IsNullOrWhiteSpace(emailToken))
+           {
+               ModelState.AddModelError("", "UserId and Token are required");
+               //return BadRequest(ModelState);
+               return Redirect("http://localhost:51378/index.html#/confirmaccount/ERROR");
+           }
 
-            IdentityResult result = await UserManager.ConfirmEmailAsync(model.userID, model.ConfirmationToken);
+           IdentityResult result = await UserManager.ConfirmEmailAsync(userID, emailToken);
 
             if (!result.Succeeded)
             {
-                return GetErrorResult(result);
+                //return GetErrorResult(result);
+                return Redirect("http://localhost:51378/index.html#/confirmaccount/ERROR");
             }
 
-            return Ok();
+            //return Ok();
+            return Redirect("http://localhost:51378/index.html#/confirmaccount/SUCCESS");
         }
 
         //////////////////////////
@@ -466,7 +502,7 @@ namespace WebServer.Controllers
             return Ok();
         }
 
-          //////////////////////////
+        //////////////////////////
         // Url:.../api/Account/ResetPassword
         // Method: POST
         // Authorization Required: NO
@@ -504,10 +540,9 @@ namespace WebServer.Controllers
                 return BadRequest();
             }
 
-            return Ok();
+            return Ok();            
         }
-
-              
+                     
         // GET api/Account/UserInfo
         [HostAuthentication(DefaultAuthenticationTypes.ExternalBearer)]
         [Route("UserInfo")]

@@ -70,7 +70,9 @@ namespace WebServer
                  MailMessage mailMsg = new MailMessage();
                 //to (Alles geht zu Testzwecken an t.rocket@... )
                 //mailMsg.To.Add(message.Destination);              
-                mailMsg.To.Add(new MailAddress("t.rocket@web.de", "TobiRakete"));      
+                //mailMsg.To.Add(new MailAddress("t.rocket@web.de", "TobiRakete"));      
+                 mailMsg.To.Add(new MailAddress("tobi.wurm@gmail.com", "TobiRakete"));      
+
                 //from
                 mailMsg.From = new MailAddress("tobitobinc@gmail.com", "TheProject");
                 // Subject and multipart/alternative Body
