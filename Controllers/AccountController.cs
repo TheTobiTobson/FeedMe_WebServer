@@ -444,7 +444,7 @@ namespace WebServer.Controllers
            {
                ModelState.AddModelError("", "UserId and Token are required");
                //return BadRequest(ModelState);
-               return Redirect("http://localhost:51378/index.html#/confirmaccount/ERROR");
+               return Redirect("http://localhost:50627/index.html#/confirmaccount/ERROR");
            }
 
            IdentityResult result = await UserManager.ConfirmEmailAsync(userID, emailToken);
@@ -452,11 +452,11 @@ namespace WebServer.Controllers
             if (!result.Succeeded)
             {
                 //return GetErrorResult(result);
-                return Redirect("http://localhost:51378/index.html#/confirmaccount/ERROR");
+                return Redirect("http://localhost:50627/index.html#/confirmaccount/ERROR");
             }
 
             //return Ok();
-            return Redirect("http://localhost:51378/index.html#/confirmaccount/SUCCESS");
+            return Redirect("http://localhost:50627/index.html#/confirmaccount/SUCCESS");
         }
 
         //////////////////////////

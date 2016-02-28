@@ -21,7 +21,7 @@ namespace WebServer
             //config.EnableCors();
 
 #if DEBUG
-            var cors = new EnableCorsAttribute("http://localhost:51378", "*", "*");
+            var cors = new EnableCorsAttribute("http://localhost:50627", "*", "*");
             config.EnableCors(cors);
 #endif  
             // Web API configuration and services
