@@ -115,6 +115,7 @@ namespace WebServer.Controllers
         // Result: List of Questions
         // Description:
         //     API is called when user requestes all questions of a Feedbacksession
+        //     ( Designer)
         //////////////////////////
                 
         [Route("~/api/Feedbackquestions/{FBS_id:int}")]
@@ -173,6 +174,7 @@ namespace WebServer.Controllers
         // Result: HTTP 200 (ok), HTTP 400(Bad Request), HTTP 404(Not Found)
         // Description:
         //     API updates the Feedbackquestion specified in QUE_id
+        //     ( Designer)
         //////////////////////////
 
         [Route("~/api/Feedbackquestion")]
@@ -247,6 +249,7 @@ namespace WebServer.Controllers
         // Result: HTTP 200 (ok), HTTP 400(Bad Request), HTTP 404(Not Found)
         // Description:
         //     API adds a new Feedbackquestion to a Feedbacksession
+        //     ( Designer)
         //////////////////////////
 
         [Route("~/api/Feedbackquestion")]
@@ -299,6 +302,7 @@ namespace WebServer.Controllers
         // Result: HTTP 200 (ok), HTTP 400(Bad Request), HTTP 404(Not Found)
         // Description:
         //     API is called when user deletes a Feedbackquestion
+        //     ( Designer)
         ///////////////////////////
 
         [Route("~/api/Feedbackquestions/{QUE_id:int}")]
